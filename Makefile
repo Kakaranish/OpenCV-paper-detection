@@ -11,7 +11,7 @@ ifeq ($(origin CXX),default)
 CXX := g++
 endif
 CFLAGS := -std=c99 -pedantic -Wall $(CFLAGS)
-CXXFLAGS := -std=c++98 -pedantic -Wall $(CXXFLAGS)
+CXXFLAGS := -std=c++11 -pedantic -Wall $(CXXFLAGS)
 LDFLAGS := -Wl,--as-needed $(LDFLAGS)
 
 # ... a potem niektórym z nich uzupełniamy opcje. Znak procentu pełni tu
