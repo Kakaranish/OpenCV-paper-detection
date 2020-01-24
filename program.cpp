@@ -22,10 +22,11 @@ void showHelp()
               << " photos of A4 sheets" << std::endl;
     std::cout << std::endl;
     std::cout << "SYNOPSIS" << std::endl;
-    std::cout << "./program [OPTION]... [FILE]" << std::endl;
+    std::cout << "./program [FILE] [OPTION]..." << std::endl;
     std::cout << std::endl;
     std::cout << "Available options" << std::endl;
-    std::cout << "-h        show help" << std::endl;
+    std::cout << "-h            show help" << std::endl;
+    std::cout << "-o filename   output filename" << std::endl;
     std::cout << std::endl;
 }
 
@@ -37,10 +38,21 @@ void showErrorMessage(std::string message)
     showHelp();
 }
 
-cv::Point2f *maintainTransformationPoints(cv::Point2f* srcTransformPoints, cv::Size imageSize)
+std::string getProvidedByUserOutputFilename(int argc, char const *argv[])
+{
+    std::string flag(argv[2]);
+    std::string filename(argv[3]);
+    if (flag == "-o")
+    {
+        return filename;
+    }
+    return std::string();
+}
+
+cv::Point2f *maintainTransformationPoints(cv::Point2f *srcTransformPoints, cv::Size imageSize)
 {
     const int pointsCount = 4;
-    cv::Point2f* destTransformPoints = new cv::Point2f[pointsCount];
+    cv::Point2f *destTransformPoints = new cv::Point2f[pointsCount];
     for (size_t i = 0; i < pointsCount; i++)
     {
         destTransformPoints[i] = cv::Point2f(srcTransformPoints[i]);
@@ -69,16 +81,26 @@ cv::Point2f *maintainTransformationPoints(cv::Point2f* srcTransformPoints, cv::S
 
 int main(int argc, char const *argv[])
 {
-    if (argc != 2)
-    {
-        showErrorMessage("Args count is not valid. Required exactly two");
-        exit(-1);
-    }
-
     if (userProvidedHelpFlag(argc, argv))
     {
         showHelp();
         exit(0);
+    }
+
+    std::string outputFilename = "output.jpg";
+    if (argc == 4)
+    {
+        outputFilename = getProvidedByUserOutputFilename(argc, argv);
+        if (outputFilename.empty())
+        {
+            showErrorMessage("Invalid arguments");
+            exit(-1);
+        }
+    }
+    else if (argc != 2)
+    {
+        showErrorMessage("Args count is not valid. Required exactly two");
+        exit(-1);
     }
 
     std::string filename = argv[1];
@@ -129,13 +151,13 @@ int main(int argc, char const *argv[])
     {
         srcTransformationPoints[i] = cv::Point2f(maxContour.data()[i]);
     }
-    cv::Point2f* destTransformationPoints = maintainTransformationPoints(srcTransformationPoints, imageSize);
+    cv::Point2f *destTransformationPoints = maintainTransformationPoints(srcTransformationPoints, imageSize);
 
     cv::Mat transformationMatrix = cv::getPerspectiveTransform(srcTransformationPoints, destTransformationPoints);
     cv::Mat finalImage;
     cv::warpPerspective(image, finalImage, transformationMatrix, imageSize);
 
-    cv::imwrite("test.jpg", finalImage);
+    cv::imwrite(outputFilename, finalImage);
 
     delete destTransformationPoints;
 }
